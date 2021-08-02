@@ -4,6 +4,11 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,7 +19,7 @@ import java.net.URL;
 
 public class MainActivity extends AppCompatActivity {
 
-    public class LoadJSONTask extends AsyncTask<String, Void, String> {
+    public static class LoadJSONTask extends AsyncTask<String, Void, String> {
 
         @Override
         protected String doInBackground(String... urls) {
@@ -41,6 +46,8 @@ public class MainActivity extends AppCompatActivity {
                     data = inputStreamReader.read();
                 }
 
+                return result;
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -49,8 +56,26 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+
+            try {
+
+                JSONObject apiObj = new JSONObject(result);
+                String weather = apiObj.getString("weather");
+
+                JSONArray weatherArray = new JSONArray(weather);
+
+                for (int i = 0; i < weatherArray.length(); i++) {
+
+                    JSONObject weatherObj = weatherArray.getJSONObject(i);
+
+                    Log.i("API Data", weatherObj.getString("description"));
+                }
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
 
 
         }
@@ -61,6 +86,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        LoadJSONTask loadJSONTask = new LoadJSONTask();
+        loadJSONTask
+                .execute("https://api.openweathermap.org/data/2.5/weather?q=Toronto&appid=7b35086e80a579855a86a30689073378");
 
     }
 }
